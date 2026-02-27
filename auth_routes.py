@@ -1,6 +1,9 @@
 """OAuth authorization endpoints.
 
 Provides:
+  POST /auth/register                  - Register with email and password
+  POST /auth/login                     - Login with email and password
+  POST /auth/logout                    - Logout and invalidate token
   GET /auth/oauth/<provider>           - Redirect user to provider's authorization URL
   GET /auth/oauth/<provider>/callback  - Handle OAuth callback, exchange code for tokens,
                                          fetch user profile
@@ -9,12 +12,103 @@ Provides:
 import secrets
 import urllib.parse
 
+import bcrypt
 import requests
 from flask import Blueprint, abort, jsonify, redirect, request, session
 
+from app.database import SessionLocal
+from app.models.user import User
+from app.token_service import TokenError, create_access_token, revoke_token, verify_token
 from oauth_config import OAuthConfigError, load_oauth_config
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
+
+
+@auth_bp.route("/register", methods=["POST"])
+def register():
+    """Register a new user with email and password.
+
+    Returns a JWT access token on success.
+    """
+    data = request.get_json()
+    if not data:
+        abort(400, description="Request body must be JSON")
+
+    email = data.get("email", "").strip().lower()
+    password = data.get("password", "")
+
+    if not email or not password:
+        abort(400, description="Email and password are required")
+
+    hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+
+    db = SessionLocal()
+    try:
+        if db.query(User).filter(User.email == email).first():
+            abort(409, description="Email already registered")
+
+        user = User(email=email, hashed_password=hashed)
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+        token = create_access_token(user.id)
+        return jsonify({"access_token": token, "token_type": "bearer"}), 201
+    finally:
+        db.close()
+
+
+@auth_bp.route("/login", methods=["POST"])
+def login():
+    """Authenticate with email and password.
+
+    Returns a JWT access token on success.
+    """
+    data = request.get_json()
+    if not data:
+        abort(400, description="Request body must be JSON")
+
+    email = data.get("email", "").strip().lower()
+    password = data.get("password", "")
+
+    if not email or not password:
+        abort(400, description="Email and password are required")
+
+    db = SessionLocal()
+    try:
+        user = db.query(User).filter(User.email == email).first()
+        if not user or not user.hashed_password:
+            abort(401, description="Invalid credentials")
+
+        if not bcrypt.checkpw(password.encode("utf-8"), user.hashed_password.encode("utf-8")):
+            abort(401, description="Invalid credentials")
+
+        token = create_access_token(user.id)
+        return jsonify({"access_token": token, "token_type": "bearer"})
+    finally:
+        db.close()
+
+
+@auth_bp.route("/logout", methods=["POST"])
+def logout():
+    """Invalidate the current JWT token.
+
+    Requires a valid Bearer token in the Authorization header.
+    """
+    auth_header = request.headers.get("Authorization", "")
+    if not auth_header.startswith("Bearer "):
+        abort(401, description="Missing or invalid Authorization header")
+
+    token = auth_header[7:]
+
+    try:
+        verify_token(token)
+    except TokenError:
+        abort(401, description="Invalid or expired token")
+
+    revoke_token(token)
+    return jsonify({"message": "Successfully logged out"})
+
 
 # Provider-specific OAuth endpoints and scopes
 PROVIDER_OAUTH_PARAMS = {
