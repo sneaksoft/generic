@@ -1,10 +1,10 @@
-# Task: OAuth provider app registration and configuration
+# Task: Design and implement User data model
 
-**Task ID:** work_9c457f4ddc76
+**Task ID:** work_f39d6f1762a6
 
 ## Description
 
-Register the application with OAuth providers (e.g., Google, GitHub). Set up environment variable configuration for client IDs, client secrets, and redirect URIs. Document the required setup steps and create a configuration module to load and validate OAuth provider credentials at startup.
+Create the User model with fields for email, hashed password, OAuth provider ID, OAuth provider name, OAuth access/refresh tokens, and standard timestamps. Include database migrations. Support both local (email/password) and OAuth-authenticated users in a single model.
 
 ## Skills
 
@@ -64,13 +64,13 @@ Only after passing code review should you call `claudevn_complete_task()`.
 **Base Branch:** main
 
 **Requirements:**
-Register the application with OAuth providers (e.g., Google, GitHub). Set up environment variable configuration for client IDs, client secrets, and redirect URIs. Document the required setup steps and create a configuration module to load and validate OAuth provider credentials at startup.
+Create the User model with fields for email, hashed password, OAuth provider ID, OAuth provider name, OAuth access/refresh tokens, and standard timestamps. Include database migrations. Support both local (email/password) and OAuth-authenticated users in a single model.
 
 ## Branch Assignment
 
-- **Branch:** `f/issue_9839bf9f79da/compute-001`
+- **Branch:** `f/issue_c79fa353f84b/compute-002`
 - **Base:** `main`
-- Push command: `git push origin f/issue_9839bf9f79da/compute-001`
+- Push command: `git push origin f/issue_c79fa353f84b/compute-002`
 
 ## Scope
 
