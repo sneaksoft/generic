@@ -1,10 +1,10 @@
-# Task: Implement local registration and login/logout API endpoints
+# Task: Build login and registration UI components
 
-**Task ID:** work_58a830ae01ae
+**Task ID:** work_62271ea40464
 
 ## Description
 
-Create POST /auth/register, POST /auth/login, and POST /auth/logout endpoints for email/password authentication. Registration should hash passwords with bcrypt before storage. Login should verify credentials and return a JWT or session token. Logout should invalidate the token/session.
+Create frontend forms for email/password registration and login. The registration form should collect email and password (with confirmation). The login form should collect email and password. Both forms should call the respective API endpoints, store the returned JWT (e.g., in localStorage or httpOnly cookie), and handle and display API error messages.
 
 ## Skills
 
@@ -64,13 +64,13 @@ Only after passing code review should you call `claudevn_complete_task()`.
 **Base Branch:** main
 
 **Requirements:**
-Create POST /auth/register, POST /auth/login, and POST /auth/logout endpoints for email/password authentication. Registration should hash passwords with bcrypt before storage. Login should verify credentials and return a JWT or session token. Logout should invalidate the token/session.
+Create frontend forms for email/password registration and login. The registration form should collect email and password (with confirmation). The login form should collect email and password. Both forms should call the respective API endpoints, store the returned JWT (e.g., in localStorage or httpOnly cookie), and handle and display API error messages.
 
 ## Branch Assignment
 
-- **Branch:** `f/issue_a39a396110f0/compute-001`
+- **Branch:** `f/issue_bf8e1981ebee/compute-001`
 - **Base:** `main`
-- Push command: `git push origin f/issue_a39a396110f0/compute-001`
+- Push command: `git push origin f/issue_bf8e1981ebee/compute-001`
 
 ## Scope
 
