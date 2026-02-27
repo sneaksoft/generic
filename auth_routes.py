@@ -6,15 +6,16 @@ Provides:
   POST /auth/logout                    - Logout and invalidate token
   GET /auth/oauth/<provider>           - Redirect user to provider's authorization URL
   GET /auth/oauth/<provider>/callback  - Handle OAuth callback, exchange code for tokens,
-                                         fetch user profile
+                                         fetch user profile, create/link user account
 """
 
+import os
 import secrets
 import urllib.parse
 
 import bcrypt
 import requests
-from flask import Blueprint, abort, jsonify, redirect, request, session
+from flask import Blueprint, abort, redirect, request, session
 
 from app.database import SessionLocal
 from app.models.user import User
@@ -237,5 +238,56 @@ def oauth_callback(provider):
         abort(502, description="Failed to fetch user profile from provider")
 
     user_profile = profile_response.json()
+    refresh_token_value = tokens.get("refresh_token")
 
-    return jsonify({"provider": provider, "profile": user_profile})
+    # Extract provider-specific user ID and email
+    provider_user_id = str(user_profile.get("id", ""))
+    email = user_profile.get("email")
+
+    if not provider_user_id:
+        abort(502, description="No user ID in provider profile")
+
+    db = SessionLocal()
+    try:
+        # 1. Find existing user by oauth_provider + oauth_provider_id
+        user = db.query(User).filter_by(
+            oauth_provider_name=provider,
+            oauth_provider_id=provider_user_id,
+        ).first()
+
+        if user is None and email:
+            # 3. Link OAuth identity to existing account matched by email
+            user = db.query(User).filter_by(email=email).first()
+            if user is not None:
+                user.oauth_provider_name = provider
+                user.oauth_provider_id = provider_user_id
+                user.oauth_access_token = access_token
+                user.oauth_refresh_token = refresh_token_value
+                db.commit()
+
+        if user is None:
+            # 2. Create a new user account
+            if not email:
+                abort(400, description="No email in provider profile; cannot create account")
+            user = User(
+                email=email,
+                oauth_provider_name=provider,
+                oauth_provider_id=provider_user_id,
+                oauth_access_token=access_token,
+                oauth_refresh_token=refresh_token_value,
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+        else:
+            # Update stored tokens for the found user
+            user.oauth_access_token = access_token
+            user.oauth_refresh_token = refresh_token_value
+            db.commit()
+
+        jwt_token = create_access_token(user.id)
+    finally:
+        db.close()
+
+    redirect_url = os.environ.get("OAUTH_SUCCESS_REDIRECT_URL", "/")
+    return redirect(f"{redirect_url}?token={jwt_token}")

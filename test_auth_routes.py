@@ -131,30 +131,107 @@ class TestOAuthCallback:
 
         assert response.status_code == 400
 
-    def test_successful_callback_returns_profile(self, client, monkeypatch):
-        for k, v in GOOGLE_ENV.items():
-            monkeypatch.setenv(k, v)
-
-        self._set_session_state(client, "valid-state", "google")
-
+    def _make_http_mocks(self, profile=None):
+        """Return mock token and profile HTTP responses."""
         mock_token_response = MagicMock()
         mock_token_response.ok = True
         mock_token_response.json.return_value = {"access_token": "tok123"}
 
         mock_profile_response = MagicMock()
         mock_profile_response.ok = True
-        mock_profile_response.json.return_value = {"id": "user1", "email": "user@example.com"}
+        mock_profile_response.json.return_value = profile or {
+            "id": "user1",
+            "email": "user@example.com",
+        }
+        return mock_token_response, mock_profile_response
 
-        with patch("auth_routes.requests.post", return_value=mock_token_response), \
-             patch("auth_routes.requests.get", return_value=mock_profile_response):
+    def _make_db_mock(self, first_results):
+        """Return a mock DB session where filter_by().first() yields results in order."""
+        mock_session = MagicMock()
+        mock_session.query.return_value.filter_by.return_value.first.side_effect = first_results
+        return mock_session
+
+    def test_successful_callback_creates_new_user_and_redirects(self, client, monkeypatch):
+        for k, v in GOOGLE_ENV.items():
+            monkeypatch.setenv(k, v)
+
+        self._set_session_state(client, "valid-state", "google")
+        mock_token_resp, mock_profile_resp = self._make_http_mocks()
+
+        new_user = MagicMock()
+        new_user.id = 42
+        mock_db = self._make_db_mock([None, None])  # no provider match, no email match
+        mock_db.refresh.side_effect = lambda u: setattr(u, "id", 42)
+
+        with patch("auth_routes.requests.post", return_value=mock_token_resp), \
+             patch("auth_routes.requests.get", return_value=mock_profile_resp), \
+             patch("auth_routes.SessionLocal", return_value=mock_db):
             response = client.get(
                 "/auth/oauth/google/callback?code=authcode&state=valid-state"
             )
 
-        assert response.status_code == 200
-        data = response.get_json()
-        assert data["provider"] == "google"
-        assert data["profile"]["email"] == "user@example.com"
+        assert response.status_code == 302
+        assert "token=" in response.headers["Location"]
+
+    def test_successful_callback_logs_in_existing_oauth_user(self, client, monkeypatch):
+        for k, v in GOOGLE_ENV.items():
+            monkeypatch.setenv(k, v)
+
+        self._set_session_state(client, "valid-state", "google")
+        mock_token_resp, mock_profile_resp = self._make_http_mocks()
+
+        existing_user = MagicMock()
+        existing_user.id = 7
+        mock_db = self._make_db_mock([existing_user])  # found by provider ID
+
+        with patch("auth_routes.requests.post", return_value=mock_token_resp), \
+             patch("auth_routes.requests.get", return_value=mock_profile_resp), \
+             patch("auth_routes.SessionLocal", return_value=mock_db):
+            response = client.get(
+                "/auth/oauth/google/callback?code=authcode&state=valid-state"
+            )
+
+        assert response.status_code == 302
+        assert "token=" in response.headers["Location"]
+
+    def test_successful_callback_links_oauth_to_existing_email_account(self, client, monkeypatch):
+        for k, v in GOOGLE_ENV.items():
+            monkeypatch.setenv(k, v)
+
+        self._set_session_state(client, "valid-state", "google")
+        mock_token_resp, mock_profile_resp = self._make_http_mocks()
+
+        email_user = MagicMock()
+        email_user.id = 5
+        mock_db = self._make_db_mock([None, email_user])  # no provider match, found by email
+
+        with patch("auth_routes.requests.post", return_value=mock_token_resp), \
+             patch("auth_routes.requests.get", return_value=mock_profile_resp), \
+             patch("auth_routes.SessionLocal", return_value=mock_db):
+            response = client.get(
+                "/auth/oauth/google/callback?code=authcode&state=valid-state"
+            )
+
+        assert response.status_code == 302
+        assert "token=" in response.headers["Location"]
+        # OAuth fields linked on the existing user
+        assert email_user.oauth_provider_name == "google"
+        assert email_user.oauth_provider_id == "user1"
+
+    def test_callback_aborts_when_no_user_id_in_profile(self, client, monkeypatch):
+        for k, v in GOOGLE_ENV.items():
+            monkeypatch.setenv(k, v)
+
+        self._set_session_state(client, "valid-state", "google")
+        mock_token_resp, mock_profile_resp = self._make_http_mocks(profile={"email": "x@example.com"})
+
+        with patch("auth_routes.requests.post", return_value=mock_token_resp), \
+             patch("auth_routes.requests.get", return_value=mock_profile_resp):
+            response = client.get(
+                "/auth/oauth/google/callback?code=authcode&state=valid-state"
+            )
+
+        assert response.status_code == 502
 
     def test_token_exchange_failure_returns_502(self, client, monkeypatch):
         for k, v in GOOGLE_ENV.items():
