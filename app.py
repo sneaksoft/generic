@@ -13,6 +13,10 @@ def create_app() -> Flask:
     app.secret_key = os.environ.get("SECRET_KEY", secrets.token_hex(32))
     app.register_blueprint(auth_bp)
 
+    @app.route("/")
+    def index_page():
+        return render_template("index.html")
+
     @app.route("/login")
     def login_page():
         return render_template("login.html")
