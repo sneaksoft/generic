@@ -1,10 +1,26 @@
-# Task: Implement JWT token issuance and validation
+# Task: Resolve conflicts: f/issue_5d3f261e0c32/compute-001
 
-**Task ID:** work_a2b17f489822
+**Task ID:** conflict-work_360010c656ea-9ccd892e
 
 ## Description
 
-Create a token service responsible for signing JWTs with a secret key (including user ID and expiration), verifying incoming tokens, and handling token refresh. Configure token TTL via environment variable. This is the shared auth utility used by both local and OAuth login flows.
+## Conflict Resolution Required
+
+Branch `f/issue_5d3f261e0c32/compute-001` has merge conflicts with main.
+
+### Conflicting Files
+  - `CLAUDE.md`
+  - `requirements.txt`
+
+### Steps
+1. `git fetch origin main`
+2. `git rebase origin/main`
+3. Resolve conflicts in each file (remove `<<<<<<<`, `=======`, `>>>>>>>` markers)
+4. `git add <file> && git rebase --continue` for each file
+5. `git push --force-with-lease origin f/issue_5d3f261e0c32/compute-001`
+6. Call `claudevn_complete_task` when done
+
+Do NOT create new features or modify behavior.
 
 ## Skills
 
@@ -68,9 +84,9 @@ Create a token service responsible for signing JWTs with a secret key (including
 
 ## Branch Assignment
 
-- **Branch:** `f/issue_c80fa37b78e7/compute-002`
+- **Branch:** `f/issue_5d3f261e0c32/compute-001`
 - **Base:** `main`
-- Push command: `git push origin f/issue_c80fa37b78e7/compute-002`
+- Push command: `git push origin f/issue_5d3f261e0c32/compute-001`
 
 ## Scope
 
