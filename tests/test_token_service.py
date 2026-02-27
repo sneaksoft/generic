@@ -52,3 +52,35 @@ def test_token_ttl_env(monkeypatch):
     import app.token_service as ts
     importlib.reload(ts)
     assert ts.TOKEN_TTL_SECONDS == 7200
+
+
+def test_revoke_token_prevents_verification():
+    """A revoked token raises TokenError on verify_token."""
+    import importlib
+    import app.token_service as ts
+    importlib.reload(ts)
+
+    token = ts.create_access_token(99)
+    assert ts.verify_token(token) == 99
+    ts.revoke_token(token)
+    with pytest.raises(ts.TokenError, match="revoked"):
+        ts.verify_token(token)
+
+
+def test_verify_token_wrong_secret_raises_error():
+    """A token signed with a different secret raises TokenError."""
+    import importlib
+    import jwt as pyjwt
+    from datetime import datetime, timedelta, timezone
+    import app.token_service as ts
+    importlib.reload(ts)
+
+    wrong_secret = "this-is-a-different-secret-key-32bytes"
+    payload = {
+        "sub": "42",
+        "iat": datetime.now(timezone.utc),
+        "exp": datetime.now(timezone.utc) + timedelta(hours=1),
+    }
+    tampered_token = pyjwt.encode(payload, wrong_secret, algorithm="HS256")
+    with pytest.raises(ts.TokenError):
+        ts.verify_token(tampered_token)
