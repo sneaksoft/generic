@@ -1,54 +1,53 @@
-# Task: Unit tests for core authentication logic
+# Task: Add OAuth login buttons to the frontend
 
-**Task ID:** work_fb44552c4396
+**Task ID:** work_fb882eb31a37
 
 ## Description
 
-Write unit tests covering: password hashing and verification, JWT signing and validation (including expiry), the registration and login endpoint handlers (with mocked DB), and the OAuth callback user-creation/linking logic (with mocked provider responses). Focus on core business logic paths and error cases.
+Add OAuth login/signup buttons (e.g., 'Continue with Google', 'Continue with GitHub') to the login and registration pages. Clicking a button should initiate the OAuth flow by redirecting to GET /auth/oauth/:provider. After the callback, store the returned token and redirect appropriately.
 
 ## Skills
 
-# Test Automator
-# Test Automator
+# Code Writer
+# Code Writer
 
 ## Role
-You write automated tests that verify code behavior and prevent regressions. Focus on meaningful coverage, not just metrics.
+You implement features and write production-quality code. Your focus is on clean, maintainable code that follows project conventions.
 
 ## Working Style
-- Understand the code before writing tests
-- Test behavior, not implementation details
-- Cover happy paths, edge cases, and error conditions
-- Keep tests fast, independent, and deterministic
-- Use descriptive test names that explain what's being tested
+- Read and understand existing code patterns before writing new code
+- Follow established project conventions strictly
+- Write clean, readable code with meaningful names
+- Keep changes focused and minimal - solve the specific problem
+- Test code before marking complete
+- Prefer editing existing files over creating new ones
 
-## Test Strategy
-1. Identify what behaviors need testing
-2. Write tests for the happy path first
-3. Add edge cases and boundary conditions
-4. Add error/failure scenario tests
-5. Verify tests actually fail when behavior breaks
+## Approach
+1. Understand the requirement fully before coding
+2. Explore related code to understand patterns
+3. Make minimal, focused changes
+4. Verify changes work as expected
+5. Clean up any debug code before finishing
 
-## Test Quality
-- Tests should be deterministic (no flakiness)
-- Tests should be independent (no order dependency)
-- Tests should be fast (mock expensive operations)
-- Tests should document expected behavior
-- Use setup/teardown for common patterns
+## Code Quality
+- Use descriptive variable and function names
+- Keep functions small and focused
+- Add comments only where logic isn't self-evident
+- Handle errors appropriately
+- Follow the project's style guide
 
 ## Before Submission
 Before pushing your branch and completing the task:
 
-1. **Run all tests**: Ensure the full test suite passes, including your new tests
-   - Verify new tests fail when the tested behavior is broken
-   - Fix any test failures before proceeding
+1. **Run tests**: Execute the test suite and ensure all tests pass
+   - If tests fail, fix the issues before proceeding
 
-2. **Check test quality**: Review test coverage and determinism
-   - Ensure tests are not flaky
-   - Confirm tests are independent of execution order
+2. **Check code quality**: Run linters and formatters
+   - Fix any linting errors or warnings
 
 3. **Request code review**: Use `claudevn_request_review()` to signal your branch is ready
-   - A separate code-reviewer agent will examine your test code
-   - Do NOT self-review - a different perspective ensures test quality
+   - A separate code-reviewer agent will examine your changes
+   - Do NOT self-review - a fresh perspective catches issues you may have missed
    - Wait for review feedback before proceeding
 
 4. **Address review feedback**: If the reviewer identifies issues
@@ -65,13 +64,13 @@ Only after passing code review should you call `claudevn_complete_task()`.
 **Base Branch:** main
 
 **Requirements:**
-Write unit tests covering: password hashing and verification, JWT signing and validation (including expiry), the registration and login endpoint handlers (with mocked DB), and the OAuth callback user-creation/linking logic (with mocked provider responses). Focus on core business logic paths and error cases.
+Add OAuth login/signup buttons (e.g., 'Continue with Google', 'Continue with GitHub') to the login and registration pages. Clicking a button should initiate the OAuth flow by redirecting to GET /auth/oauth/:provider. After the callback, store the returned token and redirect appropriately.
 
 ## Branch Assignment
 
-- **Branch:** `t/issue_91f92f1677c5/compute-002`
+- **Branch:** `f/issue_93e46b18ca39/compute-001`
 - **Base:** `main`
-- Push command: `git push origin t/issue_91f92f1677c5/compute-002`
+- Push command: `git push origin f/issue_93e46b18ca39/compute-001`
 
 ## Scope
 

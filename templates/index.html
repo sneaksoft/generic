@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f5f5f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .card {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      padding: 2rem;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+    h1 { font-size: 1.5rem; margin-bottom: 1rem; }
+    p { color: #6b7280; margin-bottom: 1.5rem; }
+    a {
+      display: inline-block;
+      padding: 0.6rem 1.5rem;
+      background: #4f46e5;
+      color: #fff;
+      border-radius: 4px;
+      text-decoration: none;
+      font-size: 1rem;
+    }
+    a:hover { background: #4338ca; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1 id="title">Welcome</h1>
+    <p id="message">You are now logged in.</p>
+    <a href="/login" id="action-link">Go to Login</a>
+  </div>
+
+  <script>
+    // Extract and store OAuth token if present in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    if (token) {
+      localStorage.setItem('access_token', token);
+      // Clean token from URL without reloading
+      window.history.replaceState({}, document.title, '/');
+    }
+
+    const storedToken = localStorage.getItem('access_token');
+    if (storedToken) {
+      document.getElementById('title').textContent = 'Welcome back!';
+      document.getElementById('message').textContent = 'You are logged in.';
+      document.getElementById('action-link').textContent = 'Log out';
+      document.getElementById('action-link').href = '#';
+      document.getElementById('action-link').addEventListener('click', function (e) {
+        e.preventDefault();
+        fetch('/auth/logout', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + storedToken },
+        }).finally(() => {
+          localStorage.removeItem('access_token');
+          window.location.href = '/login';
+        });
+      });
+    } else {
+      document.getElementById('title').textContent = 'Welcome';
+      document.getElementById('message').textContent = 'Please log in to continue.';
+    }
+  </script>
+</body>
+</html>
