@@ -15,7 +15,7 @@ import urllib.parse
 
 import bcrypt
 import requests
-from flask import Blueprint, abort, redirect, request, session
+from flask import Blueprint, abort, jsonify, redirect, request, session
 
 from app.database import SessionLocal
 from app.models.user import User

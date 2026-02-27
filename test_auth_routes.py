@@ -277,3 +277,43 @@ class TestOAuthCallback:
 
         response = client.get("/auth/oauth/twitter/callback?code=x&state=abc")
         assert response.status_code == 404
+
+    def test_callback_no_access_token_in_response_returns_502(self, client, monkeypatch):
+        """Provider token exchange succeeds but response contains no access_token."""
+        for k, v in GOOGLE_ENV.items():
+            monkeypatch.setenv(k, v)
+
+        self._set_session_state(client, "valid-state", "google")
+
+        mock_token_response = MagicMock()
+        mock_token_response.ok = True
+        mock_token_response.json.return_value = {}  # no access_token key
+
+        with patch("auth_routes.requests.post", return_value=mock_token_response):
+            response = client.get(
+                "/auth/oauth/google/callback?code=authcode&state=valid-state"
+            )
+
+        assert response.status_code == 502
+
+    def test_callback_no_email_for_new_user_returns_400(self, client, monkeypatch):
+        """Provider profile has no email and no existing user can be found; creation fails."""
+        for k, v in GOOGLE_ENV.items():
+            monkeypatch.setenv(k, v)
+
+        self._set_session_state(client, "valid-state", "google")
+
+        mock_token_resp, mock_profile_resp = self._make_http_mocks(
+            profile={"id": "user-without-email"}  # user_id present, email absent
+        )
+        # Neither provider-ID lookup nor email lookup finds a user
+        mock_db = self._make_db_mock([None])  # only one DB query (no email to do second)
+
+        with patch("auth_routes.requests.post", return_value=mock_token_resp), \
+             patch("auth_routes.requests.get", return_value=mock_profile_resp), \
+             patch("auth_routes.SessionLocal", return_value=mock_db):
+            response = client.get(
+                "/auth/oauth/google/callback?code=authcode&state=valid-state"
+            )
+
+        assert response.status_code == 400
