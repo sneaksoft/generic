@@ -3,7 +3,7 @@
 import os
 import secrets
 
-from flask import Flask
+from flask import Flask, render_template
 
 from auth_routes import auth_bp
 
@@ -12,6 +12,15 @@ def create_app() -> Flask:
     app = Flask(__name__)
     app.secret_key = os.environ.get("SECRET_KEY", secrets.token_hex(32))
     app.register_blueprint(auth_bp)
+
+    @app.route("/login")
+    def login_page():
+        return render_template("login.html")
+
+    @app.route("/register")
+    def register_page():
+        return render_template("register.html")
+
     return app
 
 
