@@ -1,14 +1,23 @@
-# Task: Add OAuth login buttons to the frontend
+# Task: Create test.html with Hello World content
 
-**Task ID:** work_fb882eb31a37
+**Task ID:** work_27d426281398
 
 ## Description
 
-Add OAuth login/signup buttons (e.g., 'Continue with Google', 'Continue with GitHub') to the login and registration pages. Clicking a button should initiate the OAuth flow by redirecting to GET /auth/oauth/:provider. After the callback, store the returned token and redirect appropriately.
+Create a simple test.html file in the repository root that displays 'Hello World' to verify that compute git push works correctly.
 
 ## Skills
 
-# Code Writer
+# Agent Configuration
+
+**Active Skills:** Code Writer
+
+
+## Skill Instructions
+
+
+### Code Writer
+
 # Code Writer
 
 ## Role
@@ -58,19 +67,33 @@ Only after passing code review should you call `claudevn_complete_task()`.
 
 
 
+
+## Constraints
+
+- Do not refactor unrelated code
+
+- Do not add features beyond the requirements
+
+- Do not modify configuration without approval
+
+- Keep PRs focused on a single concern
+
+- Do not add excessive comments or documentation
+
+
 ## Context
 
 **Repository:** http://serving:8002/git/proj_8df0f4d56dc7_repo_f89c156f.git
 **Base Branch:** main
 
 **Requirements:**
-Add OAuth login/signup buttons (e.g., 'Continue with Google', 'Continue with GitHub') to the login and registration pages. Clicking a button should initiate the OAuth flow by redirecting to GET /auth/oauth/:provider. After the callback, store the returned token and redirect appropriately.
+Create a simple test.html file in the repository root that displays 'Hello World' to verify that compute git push works correctly.
 
 ## Branch Assignment
 
-- **Branch:** `f/issue_93e46b18ca39/compute-001`
+- **Branch:** `f/issue_665229c3004c/python-002`
 - **Base:** `main`
-- Push command: `git push origin f/issue_93e46b18ca39/compute-001`
+- Push command: `git push origin f/issue_665229c3004c/python-002`
 
 ## Scope
 
